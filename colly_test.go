@@ -17,6 +17,7 @@ package colly
 import (
 	"bufio"
 	"bytes"
+	"compress/gzip"
 	"context"
 	"errors"
 	"fmt"
@@ -56,6 +57,13 @@ Disallow: /disallowed
 Disallow: /allowed*q=
 `
 
+const testXML = `<?xml version="1.0" encoding="UTF-8"?>
+<page>
+	<title>Test Page</title>
+	<paragraph type="description">This is a test page</paragraph>
+	<paragraph type="description">This is a test paragraph</paragraph>
+</page>`
+
 func newUnstartedTestServer() *httptest.Server {
 	mux := http.NewServeMux()
 
@@ -92,13 +100,13 @@ func newUnstartedTestServer() *httptest.Server {
 
 	mux.HandleFunc("/xml", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/xml")
-		w.Write([]byte(`<?xml version="1.0" encoding="UTF-8"?>
-<page>
-	<title>Test Page</title>
-	<paragraph type="description">This is a test page</paragraph>
-	<paragraph type="description">This is a test paragraph</paragraph>
-</page>
-		`))
+		w.Write([]byte(testXML))
+	})
+
+	mux.HandleFunc("/test.xml.gz", func(w http.ResponseWriter, r *http.Request) {
+		ww := gzip.NewWriter(w)
+		defer ww.Close()
+		ww.Write([]byte(testXML))
 	})
 
 	mux.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
@@ -1528,7 +1536,7 @@ func TestCollectorOnXMLWithHtml(t *testing.T) {
 	}
 }
 
-func TestCollectorOnXMLWithXML(t *testing.T) {
+func testCollectorOnXMLWithXML(t *testing.T, path string) {
 	ts := newTestServer()
 	defer ts.Close()
 
@@ -1561,7 +1569,7 @@ func TestCollectorOnXMLWithXML(t *testing.T) {
 		}
 	})
 
-	c.Visit(ts.URL + "/xml")
+	c.Visit(ts.URL + path)
 
 	if !titleCallbackCalled {
 		t.Error("Failed to call OnXML callback for <title> tag")
@@ -1570,6 +1578,14 @@ func TestCollectorOnXMLWithXML(t *testing.T) {
 	if paragraphCallbackCount != 2 {
 		t.Error("Failed to find all <paragraph> tags")
 	}
+}
+
+func TestCollectorOnXMLWithXML(t *testing.T) {
+	testCollectorOnXMLWithXML(t, "/xml")
+}
+
+func TestCollectorOnXMLWithXMLCompressed(t *testing.T) {
+	testCollectorOnXMLWithXML(t, "/test.xml.gz")
 }
 
 func TestCollectorVisitWithTrace(t *testing.T) {
