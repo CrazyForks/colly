@@ -831,20 +831,13 @@ func (c *Collector) checkFilters(URL, domain string) error {
 }
 
 func (c *Collector) isDomainAllowed(domain string) bool {
-	for _, d2 := range c.DisallowedDomains {
-		if d2 == domain {
-			return false
-		}
+	if slices.Contains(c.DisallowedDomains, domain) {
+		return false
 	}
 	if c.AllowedDomains == nil || len(c.AllowedDomains) == 0 {
 		return true
 	}
-	for _, d2 := range c.AllowedDomains {
-		if d2 == domain {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(c.AllowedDomains, domain)
 }
 
 func (c *Collector) checkRobots(u *url.URL) error {
@@ -1422,7 +1415,7 @@ func (c *Collector) Clone() *Collector {
 		AllowedDomains:         c.AllowedDomains,
 		AllowURLRevisit:        c.AllowURLRevisit,
 		CacheDir:               c.CacheDir,
-		CacheExpiration:	c.CacheExpiration,
+		CacheExpiration:        c.CacheExpiration,
 		DetectCharset:          c.DetectCharset,
 		DisallowedDomains:      c.DisallowedDomains,
 		ID:                     atomic.AddUint32(&collectorCounter, 1),
