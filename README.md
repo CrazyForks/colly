@@ -17,6 +17,9 @@ With Colly you can easily extract structured data from websites, which can be us
 
 ------
 
+## Sponsored by CyberYozh
+
+<a href="https://app.cyberyozh.com/?utm_source=github&utm_medium=colly" target="_blank" alt="CyberYozh Sponsor Logo"><img src="assets/cyberyozh.png"></a>
 
 
 ## Features
