@@ -21,7 +21,6 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
-	"sync/atomic"
 )
 
 // Request is the representation of a HTTP request made by a Collector
@@ -81,7 +80,7 @@ func (r *Request) New(method, URL string, body io.Reader) (*Request, error) {
 		Ctx:       r.Ctx,
 		Headers:   &http.Header{},
 		Host:      r.Host,
-		ID:        atomic.AddUint32(&r.collector.requestCount, 1),
+		ID:        r.collector.requestCount.Add(1),
 		collector: r.collector,
 	}, nil
 }

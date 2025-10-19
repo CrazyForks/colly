@@ -131,8 +131,8 @@ type Collector struct {
 	requestHeadersCallbacks  []RequestCallback
 	errorCallbacks           []ErrorCallback
 	scrapedCallbacks         []ScrapedCallback
-	requestCount             uint32
-	responseCount            uint32
+	requestCount             atomic.Uint32
+	responseCount            atomic.Uint32
 	backend                  *httpBackend
 	wg                       *sync.WaitGroup
 	lock                     *sync.RWMutex
@@ -623,7 +623,7 @@ func (c *Collector) UnmarshalRequest(r []byte) (*Request, error) {
 		Depth:     req.Depth,
 		Body:      bytes.NewReader(req.Body),
 		Ctx:       ctx,
-		ID:        atomic.AddUint32(&c.requestCount, 1),
+		ID:        c.requestCount.Add(1),
 		Headers:   &req.Headers,
 		collector: c,
 	}, nil
@@ -698,7 +698,7 @@ func (c *Collector) fetch(u, method string, depth int, requestData io.Reader, ct
 		Method:    method,
 		Body:      requestData,
 		collector: c,
-		ID:        atomic.AddUint32(&c.requestCount, 1),
+		ID:        c.requestCount.Add(1),
 	}
 
 	if req.Header.Get("Accept") == "" {
@@ -740,7 +740,7 @@ func (c *Collector) fetch(u, method string, depth int, requestData io.Reader, ct
 	if err := c.handleOnError(response, err, request, ctx); err != nil {
 		return err
 	}
-	atomic.AddUint32(&c.responseCount, 1)
+	c.responseCount.Add(1)
 	response.Ctx = ctx
 	response.Request = request
 	response.Trace = hTrace
@@ -772,7 +772,7 @@ func (c *Collector) requestCheck(parsedURL *url.URL, method string, getBody func
 	if c.MaxDepth > 0 && c.MaxDepth < depth {
 		return ErrMaxDepth
 	}
-	if c.MaxRequests > 0 && c.requestCount >= c.MaxRequests {
+	if c.MaxRequests > 0 && c.requestCount.Load() >= c.MaxRequests {
 		return ErrMaxRequests
 	}
 	if err := c.checkFilters(u, parsedURL.Hostname()); err != nil {
@@ -906,8 +906,8 @@ func (c *Collector) checkRobots(u *url.URL) error {
 func (c *Collector) String() string {
 	return fmt.Sprintf(
 		"Requests made: %d (%d responses) | Callbacks: OnRequest: %d, OnHTML: %d, OnResponse: %d, OnError: %d",
-		atomic.LoadUint32(&c.requestCount),
-		atomic.LoadUint32(&c.responseCount),
+		c.requestCount.Load(),
+		c.responseCount.Load(),
 		len(c.requestCallbacks),
 		len(c.htmlCallbacks),
 		len(c.responseCallbacks),
