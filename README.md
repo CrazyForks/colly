@@ -21,6 +21,14 @@ With Colly you can easily extract structured data from websites, which can be us
 
 <a href="https://app.cyberyozh.com/?utm_source=github&utm_medium=colly" target="_blank" alt="CyberYozh Sponsor Logo"><img src="assets/cyberyozh.png"></a>
 
+__CyberYozh App__ — Fast proxies, clean IPs, flexible API  Infrastructure for developers who need privacy & control.
+Across-platform infrastructure for developers working with multi-accounting, testing, and network automation.  Fast proxies, clean IPs, flexible API.
+
+- *Mobile / Residential / Datacenter Proxies* — real IPs from dozens of countries
+- *Virtual & Real SIM Numbers* — automated SMS verification
+- *API / Web UI / SDK* — integration with any projects and anti-detect environments
+- *Unlimited usage, high speed, 99.9% uptime*
+
 
 ## Features
 
