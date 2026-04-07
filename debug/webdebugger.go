@@ -147,7 +147,9 @@ func (w *WebDebugger) statusHandler(wr http.ResponseWriter, r *http.Request) {
 	jsonData, err := json.MarshalIndent(w, "", "  ")
 	w.Unlock()
 	if err != nil {
-		panic(err)
+		http.Error(wr, "internal server error", http.StatusInternalServerError)
+		log.Println("Error marshaling status JSON:", err)
+		return
 	}
 	wr.Write(jsonData)
 }
