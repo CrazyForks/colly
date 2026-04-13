@@ -1246,8 +1246,14 @@ func (c *Collector) handleOnXML(resp *Response) error {
 		return nil
 	}
 	contentType := strings.ToLower(resp.Headers.Get("Content-Type"))
+	// Parse the media type without parameters (e.g. charset)
+	mediatype, _, _ := strings.Cut(contentType, ";")
+	mediatype = strings.TrimSpace(mediatype)
 	isXMLFile := strings.HasSuffix(strings.ToLower(resp.Request.URL.Path), ".xml") || strings.HasSuffix(strings.ToLower(resp.Request.URL.Path), ".xml.gz")
-	if !strings.Contains(contentType, "html") && (!strings.Contains(contentType, "xml") && !isXMLFile) {
+	// Check for actual XML media types: text/xml, application/xml, or *+xml (e.g. application/rss+xml).
+	// Do NOT match types that merely contain "xml" in the name (e.g. .xlsx MIME types).
+	isXMLContent := mediatype == "text/xml" || mediatype == "application/xml" || strings.HasSuffix(mediatype, "+xml")
+	if !strings.Contains(contentType, "html") && !isXMLContent && !isXMLFile {
 		return nil
 	}
 
@@ -1284,7 +1290,7 @@ func (c *Collector) handleOnXML(resp *Response) error {
 				cc.Function(e)
 			}
 		}
-	} else if strings.Contains(contentType, "xml") || isXMLFile {
+	} else if isXMLContent || isXMLFile {
 		doc, err := xmlquery.Parse(bytes.NewBuffer(resp.Body))
 		if err != nil {
 			return err
