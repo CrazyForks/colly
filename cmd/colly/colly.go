@@ -99,7 +99,7 @@ func main() {
 				scraper.WriteString("}\n")
 			}
 			if len(*callbacks) > 0 {
-				for _, c := range strings.Split(*callbacks, ",") {
+				for c := range strings.SplitSeq(*callbacks, ",") {
 					switch c {
 					case "html":
 						scraper.WriteString(htmlCallbackTemplate)

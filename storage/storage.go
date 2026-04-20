@@ -110,7 +110,7 @@ func StringifyCookies(cookies []*http.Cookie) string {
 // UnstringifyCookies deserializes a cookie string to http.Cookies
 func UnstringifyCookies(s string) []*http.Cookie {
 	h := http.Header{}
-	for _, c := range strings.Split(s, "\n") {
+	for c := range strings.SplitSeq(s, "\n") {
 		h.Add("Set-Cookie", c)
 	}
 	r := http.Response{Header: h}
